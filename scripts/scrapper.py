@@ -4,6 +4,7 @@ import argparse
 import time 
 import logging
 import os
+from datetime import datetime
 from dotenv import load_dotenv
 from processor import filter_clinics_batch
 
@@ -31,7 +32,7 @@ def scrapper(search_for):
 
     with sync_playwright() as p:
         #Start playwright and go to google maps
-        browser= p.chromium.launch(headless= False)
+        browser= p.chromium.launch(headless= True)
         context= browser.new_context(
             locale='en-US',
             extra_http_headers={
@@ -65,7 +66,7 @@ def scrapper(search_for):
         #scrape all listings
         listings = page.locator('//a[contains(@href, "https://www.google.com/maps/place")]').all()
         business_list= []
-        for listing in listings[:5]:
+        for listing in listings[:10]:
             try:
                 listing.click()
                 time.sleep(2)
@@ -92,7 +93,11 @@ def scrapper(search_for):
             df = pd.DataFrame(final_clinics)
             schema = ['clinic_name', 'doctor_name', 'phone_number', 'line_type','address', 'website', 'confidence_score', 'decision']
             df = df[schema]
-            df.to_csv(f'leads.csv', index=False)
+            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
+            filename= f'leads_{timestamp}.csv'
+            output_path = os.path.join('data', filename)
+            os.makedirs('data', exist_ok=True)
+            df.to_csv(output_path, index=False)
 
 if __name__ == "__main__":
     parser= argparse.ArgumentParser()

@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+    scraper:
+        build: .
+        container_name: medical_scraper
+        env_file:
+            - .env
+        volumes:
+            - ./data:/app/data
+            - ./scripts:/app/scripts
+        # This allows you to pass arguments to the script easily
+        command: ["--query", "Dentist in Maadi"]

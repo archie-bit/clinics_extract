@@ -5,10 +5,14 @@ import os
 from dotenv import load_dotenv
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 from clean_phonenum import validate_and_format_egypt_phone
+import logging
 
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
 client = genai.Client(api_key=api_key)
+
+level = os.getenv('LOG_LEVEL', 'INFO').upper()
+logging.basicConfig(level=level)
 
 
 # @retry(
@@ -55,13 +59,10 @@ def filter_clinics_batch(business_list):
             model='gemini-2.5-flash',
             contents=prompt,
             config=types.GenerateContentConfig(
-                response_mime_type='application/json', # <--- Forces valid JSON
+                response_mime_type='application/json',
             )
         )
         ai_decisions = json.loads(response.text)
-        # Clean potential markdown wrapping
-        # json_str = response.text.replace('```json', '').replace('```', '').strip()
-        # ai_decisions = json.loads(json_str)
 
         final_leads = []
         for i, raw_biz in enumerate(business_list):
@@ -74,19 +75,18 @@ def filter_clinics_batch(business_list):
                 raw_biz['phone_number'] = "Manual Check Required"
 
             decision_data = ai_decisions.get(str(i))
-            # if decision_data and decision_data['decision'] == "KEEP":
+
             if decision_data:
                 # Merge original data with AI-extracted data
                 raw_biz['doctor_name'] = decision_data.get('doctor_name', '')
                 raw_biz['confidence_score'] = decision_data.get('confidence_score', 'Low')
                 raw_biz['decision'] = decision_data.get('decision', '')
                 
-                # # Clean Phone Number
-                # raw_biz['phone_number'] = clean_phone(raw_biz['phone_number'])
                 final_leads.append(raw_biz)
         
         return final_leads
 
     except Exception as e:
-        print(f"AI Processing Error: {e}")
+        logging.error(f'AI Processing Error: {e}')
+        # print(f"AI Processing Error: {e}")
         return []
