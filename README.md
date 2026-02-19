@@ -45,7 +45,7 @@ docker-compose run scraper --query "Clinic in Maadi"
 ---
 
 ## 3. Sample Output
-![Example Output](docs/example_output/leads_2026-02-19_16-22.csv)
+![Example Output](docs/example_output/leads.csv)
 
 
 ## 4. Project Layout
