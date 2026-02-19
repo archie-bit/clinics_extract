@@ -4,7 +4,10 @@ import argparse
 import time 
 import logging
 import os
+from dotenv import load_dotenv
+from processor import filter_clinics_batch
 
+load_dotenv()
 level = os.getenv('LOG_LEVEL', 'INFO').upper()
 logging.basicConfig(level=level)
 
@@ -83,9 +86,13 @@ def scrapper(search_for):
             except Exception as e:
                         logging.error(f'Error occured: {e}')
 
-        if business_list:
-            df = pd.DataFrame(business_list)
-            df.to_csv(f'scraped_results_{search_for}.csv', index=False)
+
+        final_clinics = filter_clinics_batch(business_list)
+        if final_clinics:
+            df = pd.DataFrame(final_clinics)
+            schema = ['clinic_name', 'doctor_name', 'phone_number', 'line_type','address', 'website', 'confidence_score', 'decision']
+            df = df[schema]
+            df.to_csv(f'leads.csv', index=False)
 
 if __name__ == "__main__":
     parser= argparse.ArgumentParser()

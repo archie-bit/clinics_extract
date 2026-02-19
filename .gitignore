@@ -1,4 +1,5 @@
-.env
 /envs
+/__pycache__
 /.vscode
+.env
 *.csv
