@@ -15,11 +15,11 @@ level = os.getenv('LOG_LEVEL', 'INFO').upper()
 logging.basicConfig(level=level)
 
 
-# @retry(
-#     stop=stop_after_attempt(3),
-#     wait=wait_exponential(multiplier=2, min=5, max=30),
-#     before_sleep=lambda retry_state: print(f"Rate limited. Retrying in {retry_state.next_action.sleep}s...")
-# )
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=2, min=5, max=30),
+    before_sleep=lambda retry_state: logging.INFO(f"Rate limited. Retrying in {retry_state.next_action.sleep}s...")
+)
 def filter_clinics_batch(business_list):
     """
     Takes a list of business dictionaries and returns only the ones
